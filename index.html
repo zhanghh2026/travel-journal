@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>旅行手账</title>
+  <meta name="description" content="拍照写字，AI整理，一键生成温暖手账长图，即刻发朋友圈。">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FFF7EC">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="旅行手账">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- 顶部栏 -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">旅</span>
+      <div>
+        <h1>旅行手账</h1>
+        <p class="brand-sub">边走边记 · 一键成册</p>
+      </div>
+    </div>
+    <button id="btn-settings" class="icon-btn" aria-label="设置" title="设置">⚙️</button>
+  </header>
+
+  <main class="app">
+    <!-- 第一屏：记录编辑 -->
+    <section id="screen-edit" class="screen active">
+      <!-- 分类导航 -->
+      <div class="cat-tabs">
+        <button class="cat-tab active" data-cat="food">🍜 美食</button>
+        <button class="cat-tab" data-cat="scenery">🏞 风景</button>
+        <button class="cat-tab" data-cat="culture">🏮 人文</button>
+        <button class="cat-tab" data-cat="story">📖 故事</button>
+        <button class="cat-tab" data-cat="fun">😄 趣事</button>
+        <button class="cat-tab" data-cat="activity">🎪 活动</button>
+      </div>
+
+      <!-- 图片上传区 -->
+      <div class="photo-zone" id="photo-zone">
+        <input type="file" id="file-input" accept="image/*" capture="environment" hidden multiple>
+        <div class="photo-preview" id="photo-preview"></div>
+        <div class="photo-hint" id="photo-hint">
+          <span class="hint-ico">📷</span>
+          <span>拍照或选图</span>
+          <small>可添加多张沿途照片</small>
+        </div>
+      </div>
+
+      <!-- 文字输入 -->
+      <div class="input-card">
+        <textarea id="note-input" placeholder="在这里写下此刻……今天吃了什么、看了什么景、遇到了什么人、听了什么故事"></textarea>
+        <div class="note-meta">
+          <span class="cat-label" id="cat-label">🍜 美食</span>
+          <span class="char-count" id="char-count">0 / 500</span>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="action-bar">
+        <button id="btn-ai" class="btn btn-primary">✨ AI 整理文案</button>
+        <button id="btn-generate" class="btn btn-accent">🎨 生成长图</button>
+      </div>
+
+      <!-- 历史记录 -->
+      <div class="history" id="history">
+        <h2 class="history-title">已记录的手账</h2>
+        <div id="history-list"></div>
+        <p class="empty-history" id="empty-history">还没有记录，点击上方开始你的第一页手账吧 🌱</p>
+      </div>
+    </section>
+
+    <!-- 第二屏：预览长图 -->
+    <section id="screen-preview" class="screen hidden">
+      <div class="preview-wrap">
+        <div class="journal-canvas" id="journal-canvas"></div>
+      </div>
+      <div class="preview-actions">
+        <button id="btn-save" class="btn btn-primary">💾 保存到相册</button>
+        <button id="btn-share" class="btn btn-accent">📤 分享 / 发朋友圈</button>
+        <button id="btn-back" class="btn btn-ghost">← 返回编辑</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- 设置弹层 -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>⚙️ 设置</h3>
+        <button class="icon-btn" id="modal-close">✕</button>
+      </div>
+      <label class="field-label">AI 服务（火山引擎豆包）</label>
+      <input type="password" id="api-key" placeholder="粘贴你的 API Key" autocomplete="off">
+      <p class="field-help">Key 仅保存在本机浏览器，不会上传到任何服务器。可在火山引擎控制台获取。</p>
+      <button id="btn-save-settings" class="btn btn-primary btn-block">保存设置</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    }
+  </script>
+  <script src="js/app.js"></script>
+</body>
+</html>
