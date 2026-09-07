@@ -54,7 +54,6 @@ body { padding-bottom: 24px; }
 .app { padding: 16px 16px 0; max-width: 520px; margin: 0 auto; }
 .screen { display: none; }
 .screen.active { display: block; }
-.hidden { display: none !important; }
 
 /* ---- 分类导航 ---- */
 .cat-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; }
@@ -142,6 +141,7 @@ body { padding-bottom: 24px; }
 .btn-primary { background: linear-gradient(135deg, #E2604B, #D9534F); box-shadow: 0 4px 12px rgba(226,96,75,.3); }
 .btn-accent { background: linear-gradient(135deg, #E8A33D, #D98E2B); box-shadow: 0 4px 12px rgba(232,163,61,.3); }
 .btn-ghost { background: #F4E9DB; color: var(--ink); flex: 0 0 auto; padding: 14px 18px; }
+.btn-danger { background: linear-gradient(135deg, #c0392b, #922b21); box-shadow: 0 4px 12px rgba(192,57,43,.3); }
 .btn-block { width: 100%; flex: none; }
 
 /* ---- 历史 ---- */
@@ -166,8 +166,9 @@ body { padding-bottom: 24px; }
 /* ---- 设置弹层 ---- */
 .modal {
   position: fixed; inset: 0; background: rgba(74,55,40,.4);
-  display: flex; align-items: flex-end; justify-content: center; z-index: 50;
+  display: none; align-items: flex-end; justify-content: center; z-index: 50;
 }
+.modal.show { display: flex; }
 .modal-card {
   width: 100%; max-width: 520px; background: var(--card);
   border-radius: 22px 22px 0 0; padding: 20px 20px 30px;
