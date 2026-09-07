@@ -87,6 +87,7 @@
       $('#screen-preview').classList.remove('active');
       $('#screen-edit').classList.add('active');
     });
+    $('#btn-delete').addEventListener('click', handleDelete);
 
     $('#btn-settings').addEventListener('click', openSettings);
     $('#modal-close').addEventListener('click', closeSettings);
@@ -159,9 +160,9 @@
   function loadKey() { return (storageGet('ark_api_key') || '').trim(); }
   function openSettings() {
     $('#api-key').value = loadKey();
-    $('#settings-modal').classList.remove('hidden');
+    $('#settings-modal').classList.add('show');
   }
-  function closeSettings() { $('#settings-modal').classList.add('hidden'); }
+  function closeSettings() { $('#settings-modal').classList.remove('show'); }
   function saveSettings() {
     const key = $('#api-key').value.trim();
     storageSet('ark_api_key', key);
@@ -195,7 +196,7 @@
   function openHistory(id) {
     const h = history.find(x => x.id === id);
     if (!h) return;
-    generating = { dataUrl: h.img, text: h.text };
+    generating = { dataUrl: h.img, text: h.text, id: h.id };
     showPreview();
   }
 
@@ -426,7 +427,7 @@ ${userText || '（用户没有写文字，请仅依据照片内容描述）'}
     try {
       const url = await renderJournal(text, currentCat);
       generating = { dataUrl: url, text };
-      showPreview(url);
+      showPreview();
       addHistory(url, text);
       toast('手账已生成');
     } catch (err) {
@@ -437,10 +438,12 @@ ${userText || '（用户没有写文字，请仅依据照片内容描述）'}
     }
   }
 
-  function showPreview(url) {
-    $('#journal-canvas').innerHTML = `<img src="${url}" alt="旅行手账长图" style="width:100%;height:auto;border-radius:16px;box-shadow:0 8px 24px rgba(234,168,120,.3);">`;
+  function showPreview() {
+    if (!generating || !generating.dataUrl) { toast('没有可预览的手账'); return; }
+    $('#journal-canvas').innerHTML = '<img src="' + generating.dataUrl + '" alt="旅行手账长图" style="width:100%;height:auto;border-radius:16px;box-shadow:0 8px 24px rgba(234,168,120,.3);">';
     $('#screen-edit').classList.remove('active');
     $('#screen-preview').classList.add('active');
+    window.scrollTo(0, 0);
   }
 
   function addHistory(url, text) {
@@ -449,6 +452,7 @@ ${userText || '（用户没有写文字，请仅依据照片内容描述）'}
     if (history.length > 8) history.pop();
     saveHistory();
     renderHistory();
+    if (generating) generating.id = item.id;
   }
 
   function handleSave() {
@@ -475,6 +479,21 @@ ${userText || '（用户没有写文字，请仅依据照片内容描述）'}
       console.error(err);
       toast('分享失败：' + err.message);
     }
+  }
+
+  function handleDelete() {
+    if (!generating) { toast('没有可删除的手账'); return; }
+    if (generating.id) {
+      // 从历史记录中删除
+      history = history.filter(h => h.id !== generating.id);
+      saveHistory();
+      renderHistory();
+    }
+    generating = null;
+    $('#journal-canvas').innerHTML = '';
+    $('#screen-preview').classList.remove('active');
+    $('#screen-edit').classList.add('active');
+    toast('已删除该页手账');
   }
 
   // ---------- 日期 ----------
