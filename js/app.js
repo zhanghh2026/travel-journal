@@ -268,6 +268,26 @@ ${userText || '（用户没有写文字，请仅依据照片内容描述）'}
       img.src = src;
     });
   }
+
+  // 压缩图片到指定最大边，减少内存和 dataURL 体积
+  function compressImage(dataUrl, maxSide) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w <= maxSide && h <= maxSide) { resolve(dataUrl); return; }
+        if (w > h) { h = Math.round(h * maxSide / w); w = maxSide; }
+        else { w = Math.round(w * maxSide / h); h = maxSide; }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const cx = c.getContext('2d');
+        cx.drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => resolve(dataUrl); // 压缩失败用原图
+      img.src = dataUrl;
+    });
+  }
   function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -291,8 +311,11 @@ ${userText || '（用户没有写文字，请仅依据照片内容描述）'}
     return out;
   }
 
-  async function renderJournal(text, cat) {
-    const imgs = await Promise.all(photos.map(p => loadImage(p.dataUrl)));
+  async function renderJournal(text, catKey) {
+    const cat = CATS[catKey] || CATS.food;
+    // 压缩图片，避免手机大图导致 canvas 溢出
+    const compressed = await Promise.all(photos.map(p => compressImage(p.dataUrl, 1200)));
+    const imgs = await Promise.all(compressed.map(src => loadImage(src)));
 
     // 布局：第1张全宽，其余2张/行
     const cw = W - PAD * 2; // 内容宽
@@ -301,17 +324,17 @@ ${userText || '（用户没有写文字，请仅依据照片内容描述）'}
     // 第一张
     if (imgs[0]) {
       const r = imgs[0].height / imgs[0].width;
-      blocks.push({ img: imgs[0], dataUrl: photos[0].dataUrl, x: PAD, y: 0, w: cw, h: cw * r });
+      blocks.push({ img: imgs[0], x: PAD, y: 0, w: cw, h: Math.min(cw * r, cw * 1.3) });
     }
     // 其余
     const rest = imgs.slice(1);
     for (let i = 0; i < rest.length; i += 2) {
-      const a = rest[i], aUrl = photos[i + 1].dataUrl;
-      const b = rest[i + 1], bUrl = photos[i + 2] ? photos[i + 2].dataUrl : null;
+      const a = rest[i];
+      const b = rest[i + 1];
       const itemW = (cw - gap) / 2;
       const rowH = Math.max(itemW * (a.height / a.width), b ? itemW * (b.height / b.width) : 0);
-      blocks.push({ img: a, dataUrl: aUrl, x: PAD, y: 0, w: itemW, h: rowH });
-      if (b) blocks.push({ img: b, dataUrl: bUrl, x: PAD + itemW + gap, y: 0, w: itemW, h: rowH });
+      blocks.push({ img: a, x: PAD, y: 0, w: itemW, h: Math.min(rowH, itemW * 1.3) });
+      if (b) blocks.push({ img: b, x: PAD + itemW + gap, y: 0, w: itemW, h: Math.min(rowH, itemW * 1.3) });
     }
 
     // 文字区
@@ -405,10 +428,10 @@ ${userText || '（用户没有写文字，请仅依据照片内容描述）'}
       generating = { dataUrl: url, text };
       showPreview(url);
       addHistory(url, text);
-      toast('手账已生成 🎉');
+      toast('手账已生成');
     } catch (err) {
-      console.error(err);
-      toast('生成失败：' + err.message);
+      console.error('renderJournal error:', err);
+      toast('生成失败：' + (err.message || err));
     } finally {
       btn.disabled = false; btn.textContent = '🎨 生成长图';
     }
