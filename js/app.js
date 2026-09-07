@@ -29,8 +29,12 @@
 
   // ---------- 状态 ----------
   let currentCat = 'food';
-  let photos = [];       // {id, dataUrl}
-  let history = [];      // {id, date, title, cat, text, img}  img为降采样后的长图dataURL
+  // 每个分类各自保留照片和文字，切换分类互不丢失
+  const catData = {}; // { food: {photos:[], text:''}, scenery: {...}, ... }
+  Object.keys(CATS).forEach(k => catData[k] = { photos: [], text: '' });
+  function cur() { return catData[currentCat]; }
+  let photos = []; // 便捷引用，始终指向 cur().photos
+  let history = [];      // {id, date, title, cat, text, img}
   let generating = null; // 当前预览的 {img, text}
 
   // ---------- 初始化 ----------
@@ -45,20 +49,34 @@
   function bindEvents() {
     $$('.cat-tab').forEach(btn => {
       btn.addEventListener('click', () => {
+        // 保存当前分类的照片和文字
+        cur().photos = photos;
+        cur().text = $('#note-input').value;
+        // 切换
         $$('.cat-tab').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentCat = btn.dataset.cat;
+        // 加载新分类的照片和文字
+        photos = cur().photos;
+        $('#note-input').value = cur().text;
+        $('#char-count').textContent = cur().text.length + ' / 500';
         $('#cat-label').textContent = CATS[currentCat].icon + ' ' + CATS[currentCat].label;
+        renderPhotos();
       });
     });
 
-    $('#photo-zone').addEventListener('click', () => $('#file-input').click());
-    $('#file-input').addEventListener('change', e => handleFiles(e.target.files));
+    const fileInput = $('#file-input');
+    $('#photo-zone').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => {
+      handleFiles(e.target.files);
+      e.target.value = ''; // 重置，确保下次选图（含重复选同一张）能正常触发
+    });
 
     $('#note-input').addEventListener('input', () => {
       let v = $('#note-input').value;
       if (v.length > 500) { v = v.slice(0, 500); $('#note-input').value = v; }
       $('#char-count').textContent = v.length + ' / 500';
+      cur().text = v; // 实时保存
     });
 
     $('#btn-ai').addEventListener('click', handleAI);
@@ -79,17 +97,23 @@
   // ---------- 图片 ----------
   function handleFiles(list) {
     if (!list || !list.length) return;
+    let pending = 0;
     Array.from(list).forEach(file => {
       if (!file.type.startsWith('image/')) return;
+      pending++;
       const reader = new FileReader();
       reader.onload = ev => {
         const id = 'p' + Date.now() + Math.random().toString(36).slice(2, 6);
         photos.push({ id, dataUrl: ev.target.result });
-        if (photos.length > 9) photos.shift();
+        if (photos.length > 9) photos = photos.slice(-9);
         renderPhotos();
+        pending--;
+        if (pending === 0) toast('已添加 ' + photos.length + ' 张照片');
       };
+      reader.onerror = () => { toast('图片读取失败，请重试'); pending--; };
       reader.readAsDataURL(file);
     });
+    if (pending === 0) toast('未选择有效的图片');
   }
 
   function renderPhotos() {
