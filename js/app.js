@@ -121,17 +121,33 @@
     const preview = $('#photo-preview');
     if (photos.length) {
       zone.classList.add('has-photo');
-      preview.innerHTML = photos.map(p => `
+      let html = '<div class="photo-bar">';
+      html += '<span class="photo-count">📷 ' + photos.length + ' / 9 张</span>';
+      if (photos.length < 9) html += '<button class="add-more" id="add-more-btn">＋ 继续添加</button>';
+      html += '</div>';
+      html += '<div class="photo-grid">';
+      html += photos.map(p => `
         <div class="thumb" data-id="${p.id}">
           <img src="${p.dataUrl}" alt="沿途照片">
           <button class="del" data-id="${p.id}">✕</button>
         </div>`).join('');
+      html += '</div>';
+      preview.innerHTML = html;
+      // 绑定删除
       preview.querySelectorAll('.del').forEach(d => {
         d.addEventListener('click', ev => {
           ev.stopPropagation();
           photos = photos.filter(p => p.id !== d.dataset.id);
+          cur().photos = photos;
           renderPhotos();
+          if (photos.length === 0) toast('已清空，可重新选图');
         });
+      });
+      // 绑定继续添加
+      const addBtn = $('#add-more-btn');
+      if (addBtn) addBtn.addEventListener('click', ev => {
+        ev.stopPropagation();
+        $('#file-input').click();
       });
     } else {
       zone.classList.remove('has-photo');
