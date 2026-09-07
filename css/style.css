@@ -73,21 +73,42 @@ body { padding-bottom: 24px; }
   position: relative; margin: 6px 0 14px;
   border: 2px dashed var(--accent-soft);
   border-radius: var(--radius);
-  min-height: 150px; cursor: pointer; overflow: hidden;
+  min-height: 120px; overflow: hidden;
   background: var(--card);
 }
-.photo-preview { display: none; flex-wrap: wrap; gap: 8px; padding: 12px; }
-.photo-preview.has-photo { display: flex; }
-.photo-preview .thumb {
+/* 有图时去掉虚线边框 */
+.photo-zone.has-photo { border: none; }
+
+.photo-preview { display: none; }
+.photo-zone.has-photo .photo-preview { display: block; padding: 12px; }
+
+.photo-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.photo-grid .thumb {
   position: relative; width: calc(33.33% - 6px); aspect-ratio: 1; border-radius: 12px;
-  overflow: hidden;
+  overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,.1);
 }
-.photo-preview .thumb img { width: 100%; height: 100%; object-fit: cover; }
-.photo-preview .thumb .del {
-  position: absolute; top: 4px; right: 4px; width: 20px; height: 20px;
-  background: rgba(0,0,0,.55); color: #fff; border: none; border-radius: 50%;
-  font-size: 12px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center;
+.photo-grid .thumb img { width: 100%; height: 100%; object-fit: cover; }
+.photo-grid .thumb .del {
+  position: absolute; top: 5px; right: 5px; width: 24px; height: 24px;
+  background: rgba(0,0,0,.6); color: #fff; border: none; border-radius: 50%;
+  font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  z-index: 2;
 }
+.photo-grid .thumb .del:active { background: rgba(226,96,75,.85); }
+
+/* 图片计数+继续添加按钮 */
+.photo-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.photo-bar .photo-count { font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.photo-bar .add-more {
+  border: none; background: var(--accent-soft); color: var(--accent);
+  font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 999px;
+  cursor: pointer;
+}
+.photo-bar .add-more:active { opacity: .7; }
+
 .photo-hint {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 26px 12px; gap: 4px; color: var(--ink-soft);
