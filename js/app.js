@@ -82,7 +82,6 @@
     $('#btn-ai').addEventListener('click', handleAI);
     $('#btn-generate').addEventListener('click', handleGenerate);
     $('#btn-save').addEventListener('click', handleSave);
-    $('#btn-share').addEventListener('click', handleShare);
     $('#btn-back').addEventListener('click', () => {
       $('#screen-preview').classList.remove('active');
       $('#screen-edit').classList.add('active');
@@ -462,23 +461,6 @@ ${userText || '（用户没有写文字，请仅依据照片内容描述）'}
     a.download = '旅行手账_' + Date.now() + '.png';
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     toast('已保存到相册/下载 📂');
-  }
-
-  async function handleShare() {
-    if (!generating) { toast('请先生成手账'); return; }
-    try {
-      const blob = await (await fetch(generating.dataUrl)).blob();
-      const file = new File([blob], '旅行手账.png', { type: 'image/png' });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: '旅行手账', text: '我的旅途手账' });
-      } else {
-        handleSave(); // 不支持原生分享则下载
-      }
-    } catch (err) {
-      if (err.name === 'AbortError') return; // 用户取消
-      console.error(err);
-      toast('分享失败：' + err.message);
-    }
   }
 
   function handleDelete() {
